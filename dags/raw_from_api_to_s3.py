@@ -16,11 +16,9 @@ LAYER = 'raw'
 SOURCE = 'earthquake'
 
 # S3
-# ACCESS_KEY = Variable.get("access_key")
-# SECRET_KEY = Variable.get("secret_key")
+ACCESS_KEY = Variable.get("access_key")
+SECRET_KEY = Variable.get("secret_key")
 
-ACCESS_KEY = "nOh7fcyMk3sFLk0xFsiT"
-SECRET_KEY = "g3QxwTwU0snvhCu01IUiiQtzPGK5x51c2eXwo9hY"
 
 
 args = {
@@ -69,27 +67,27 @@ def get_and_transfer_api_data_to_s3(**context):
     con.close()
     logging.info(f"Download for date success: {start_date}")
 
-    with DAG(
-            dag_id=DAG_ID,
-            schedule_interval="0 8 * * *",
-            default_args=args,
-            tags=["s3", "raw"],
-            concurrency=1,
-            max_active_tasks=1,
-            max_active_runs=1,
-    ) as dag:
+with DAG(
+        dag_id=DAG_ID,
+        schedule_interval="0 8 * * *",
+        default_args=args,
+        tags=["s3", "raw"],
+        concurrency=1,
+        max_active_tasks=1,
+        max_active_runs=1,
+) as dag:
 
-        start = EmptyOperator(
-            task_id="start",
-        )
+    start = EmptyOperator(
+        task_id="start",
+    )
 
-        get_and_transfer_api_data_to_s3 = PythonOperator(
-            task_id="get_and_transfer_api_data_to_s3",
-            python_callable=get_and_transfer_api_data_to_s3,
-        )
+    get_and_transfer_api_data_to_s3 = PythonOperator(
+        task_id="get_and_transfer_api_data_to_s3",
+        python_callable=get_and_transfer_api_data_to_s3,
+    )
 
-        end = EmptyOperator(
-            task_id="end",
-        )
+    end = EmptyOperator(
+        task_id="end",
+    )
 
-        start >> get_and_transfer_api_data_to_s3 >> end
+start >> get_and_transfer_api_data_to_s3 >> end
